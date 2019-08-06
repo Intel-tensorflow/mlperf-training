@@ -155,7 +155,7 @@ def download_from_url(path, url):
     filename = os.path.join(path, filename)
     tf.logging.info("Downloading from %s to %s." % (url, filename))
     inprogress_filepath = filename + ".incomplete"
-    inprogress_filepath, _ = urllib.urlretrieve(
+    inprogress_filepath, _ = urllib.request.urlretrieve(
         url, inprogress_filepath, reporthook=download_report_hook)
     # Print newline to clear the carriage return from the download progress.
     print()

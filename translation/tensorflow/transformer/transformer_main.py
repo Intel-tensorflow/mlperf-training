@@ -266,8 +266,9 @@ def train_schedule(
   for i in xrange(train_eval_iterations):
     print("Starting iteration", i + 1)
 
-    mlperf_log.transformer_print(key=mlperf_log.TRAIN_EPOCH,
-                                 value=i * single_iteration_train_epochs + 1)
+    #Ashraf commented line
+    #mlperf_log.transformer_print(key=mlperf_log.TRAIN_EPOCH,
+    #                             value=i * single_iteration_train_epochs + 1)
 
     # Train the model for single_iteration_train_steps or until the input fn
     # runs out of examples (if single_iteration_train_steps is None).
