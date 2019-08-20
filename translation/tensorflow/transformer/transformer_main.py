@@ -275,9 +275,10 @@ def train_schedule(
     estimator.train(dataset.train_input_fn, steps=single_iteration_train_steps)
 
     mlperf_log.transformer_print(key=mlperf_log.EVAL_START)
-    eval_results = estimator.evaluate(dataset.eval_input_fn)
-    print("Evaluation results (iter %d/%d):" % (i + 1, train_eval_iterations),
-          eval_results)
+    #Ashraf: to save time, Ashraf turns off evaluation
+    #eval_results = estimator.evaluate(dataset.eval_input_fn)
+    #print("Evaluation results (iter %d/%d):" % (i + 1, train_eval_iterations),
+    #      eval_results)
 
     if evaluate_bleu:
       uncased_score, _ = evaluate_and_log_bleu(
