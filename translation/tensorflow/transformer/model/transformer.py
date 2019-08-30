@@ -98,9 +98,16 @@ class Transformer(object):
       # Generate output sequence if targets is None, or return logits if target
       # sequence is known.
       if targets is None:
-        return self.predict(encoder_outputs, attention_bias)
+        with tf.contrib.tpu.bfloat16_scope(): # Ashraf 
+          out_seq =  self.predict(encoder_outputs, attention_bias)
+          print(" yes in target is None")
+        logits = tf.cast(out_seq, tf.float32)
+        return out_seq
       else:
-        logits = self.decode(targets, encoder_outputs, attention_bias)
+        with tf.contrib.tpu.bfloat16_scope():
+           logits = self.decode(targets, encoder_outputs, attention_bias)
+           print(" yes in target is not None")
+        logits = tf.cast(logits, tf.float32)
         return logits
 
   def encode(self, inputs, attention_bias):
@@ -116,13 +123,17 @@ class Transformer(object):
     with tf.name_scope("encode"):
       # Prepare inputs to the layer stack by adding positional encodings and
       # applying dropout.
-      embedded_inputs = self.embedding_softmax_layer(inputs)
+      # embedded_inputs = self.embedding_softmax_layer(inputs)
+      # cast to bfloat16
+      embedded_inputs = tf.cast(self.embedding_softmax_layer(inputs), tf.bfloat16)
       inputs_padding = model_utils.get_padding(inputs)
 
       with tf.name_scope("add_pos_encoding"):
         length = tf.shape(embedded_inputs)[1]
         pos_encoding = model_utils.get_position_encoding(
             length, self.params.hidden_size)
+        # casting to bfloat16
+        pos_encoding = tf.cast(pos_encoding, tf.bfloat16) 
         encoder_inputs = embedded_inputs + pos_encoding
 
       if self.train:
@@ -150,13 +161,17 @@ class Transformer(object):
     with tf.name_scope("decode"):
       # Prepare inputs to decoder layers by shifting targets, adding positional
       # encoding and applying dropout.
-      decoder_inputs = self.embedding_softmax_layer(targets)
+      # decoder_inputs = self.embedding_softmax_layer(targets)
+      # cast the target to bfloat16
+      decoder_inputs = tf.cast(self.embedding_softmax_layer(targets), tf.bfloat16)
       with tf.name_scope("shift_targets"):
         # Shift targets to the right, and remove the last element
         decoder_inputs = tf.pad(
             decoder_inputs, [[0, 0], [1, 0], [0, 0]])[:, :-1, :]
       with tf.name_scope("add_pos_encoding"):
         length = tf.shape(decoder_inputs)[1]
+        # casting to bfloat16
+        length = tf.cast(length, tf.bfloat16)
         decoder_inputs += model_utils.get_position_encoding(
             length, self.params.hidden_size)
       if self.train:
@@ -172,7 +187,9 @@ class Transformer(object):
       outputs = self.decoder_stack(
           decoder_inputs, encoder_outputs, decoder_self_attention_bias,
           attention_bias)
-      logits = self.embedding_softmax_layer.linear(outputs)
+      with tf.contrib.tpu.bfloat16_scope():
+        logits = self.embedding_softmax_layer.linear(outputs)
+      logits = tf.cast(logits, tf.bfloat16)
       return logits
 
   def _get_symbols_to_logits_fn(self, max_decode_length):
@@ -209,8 +226,10 @@ class Transformer(object):
       decoder_outputs = self.decoder_stack(
           decoder_input, cache.get("encoder_outputs"), self_attention_bias,
           cache.get("encoder_decoder_attention_bias"), cache)
-      logits = self.embedding_softmax_layer.linear(decoder_outputs)
-      logits = tf.squeeze(logits, axis=[1])
+      with tf.contrib.tpu.bfloat16_scope():
+        logits = self.embedding_softmax_layer.linear(decoder_outputs)
+        logits = tf.squeeze(logits, axis=[1])
+      logits = tf.cast(logits, tf.bfloat16)
       return logits, cache
     return symbols_to_logits_fn
 
@@ -272,16 +291,21 @@ class LayerNormalization(tf.layers.Layer):
     mlperf_log.transformer_print(
         key=mlperf_log.MODEL_HP_NORM,
         value={"hidden_size": self.hidden_size})
-    self.scale = tf.get_variable("layer_norm_scale", [self.hidden_size],
-                                 initializer=tf.ones_initializer())
-    self.bias = tf.get_variable("layer_norm_bias", [self.hidden_size],
-                                initializer=tf.zeros_initializer())
+    # Casting to bfloat16
+    with tf.contrib.tpu.bfloat16_scope(): # Ashraf 
+      self.scale = tf.get_variable("layer_norm_scale", [self.hidden_size],
+                                   initializer=tf.ones_initializer())
+      self.scale = tf.cast(self.scale, tf.bfloat16)
+      self.bias = tf.get_variable("layer_norm_bias", [self.hidden_size],
+                                  initializer=tf.zeros_initializer())
+      self.bias = tf.cast(self.bias, tf.bfloat16)
     self.built = True
 
   def call(self, x, epsilon=1e-6):
     mean = tf.reduce_mean(x, axis=[-1], keepdims=True)
     variance = tf.reduce_mean(tf.square(x - mean), axis=[-1], keepdims=True)
     norm_x = (x - mean) * tf.rsqrt(variance + epsilon)
+    norm_x = tf.cast(norm_x, tf.bfloat16)
     return norm_x * self.scale + self.bias
 
 

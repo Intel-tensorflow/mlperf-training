@@ -271,6 +271,7 @@ class SequenceBeamSearch(object):
 
     # Unflatten logits to shape [batch_size, beam_size, vocab_size]
     logits = _unflatten_beam_dim(flat_logits, self.batch_size, self.beam_size)
+    print(" logits in beam search", logits.dtype)
     new_cache = nest.map_structure(
         lambda t: _unflatten_beam_dim(t, self.batch_size, self.beam_size),
         flat_cache)

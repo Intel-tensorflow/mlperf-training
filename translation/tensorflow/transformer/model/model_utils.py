@@ -42,6 +42,8 @@ def get_position_encoding(
   Returns:
     Tensor with shape [length, hidden_size]
   """
+  print (length.dtype)
+  length = tf.cast(length, tf.float32)
   position = tf.to_float(tf.range(length))
   num_timescales = hidden_size // 2
   log_timescale_increment = (
@@ -51,6 +53,7 @@ def get_position_encoding(
       tf.to_float(tf.range(num_timescales)) * -log_timescale_increment)
   scaled_time = tf.expand_dims(position, 1) * tf.expand_dims(inv_timescales, 0)
   signal = tf.concat([tf.sin(scaled_time), tf.cos(scaled_time)], axis=1)
+  signal = tf.cast(signal, tf.bfloat16)
   return signal
 
 

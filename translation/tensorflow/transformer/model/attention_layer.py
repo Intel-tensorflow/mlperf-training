@@ -137,6 +137,8 @@ class Attention(tf.layers.Layer):
 
     # Calculate dot product attention
     logits = tf.matmul(q, k, transpose_b=True)
+    # bias is casted to bfloat16
+    bias = tf.cast(bias, tf.bfloat16)
     logits += bias
     weights = tf.nn.softmax(logits, name="attention_weights")
     if self.train:
