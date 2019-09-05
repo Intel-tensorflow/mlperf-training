@@ -53,7 +53,8 @@ def get_position_encoding(
       tf.to_float(tf.range(num_timescales)) * -log_timescale_increment)
   scaled_time = tf.expand_dims(position, 1) * tf.expand_dims(inv_timescales, 0)
   signal = tf.concat([tf.sin(scaled_time), tf.cos(scaled_time)], axis=1)
-  signal = tf.cast(signal, tf.bfloat16)
+  #not casting
+  #signal = tf.cast(signal, tf.bfloat16)
   return signal
 
 

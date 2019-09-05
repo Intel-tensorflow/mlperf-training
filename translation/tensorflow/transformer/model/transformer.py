@@ -100,8 +100,7 @@ class Transformer(object):
       if targets is None:
         with tf.contrib.tpu.bfloat16_scope(): # Ashraf 
           out_seq =  self.predict(encoder_outputs, attention_bias)
-          print(" yes in target is None")
-        logits = tf.cast(out_seq, tf.float32)
+        out_seq = tf.cast(out_seq, tf.float32)
         return out_seq
       else:
         with tf.contrib.tpu.bfloat16_scope():
@@ -123,7 +122,7 @@ class Transformer(object):
     with tf.name_scope("encode"):
       # Prepare inputs to the layer stack by adding positional encodings and
       # applying dropout.
-      # embedded_inputs = self.embedding_softmax_layer(inputs)
+      #embedded_inputs = self.embedding_softmax_layer(inputs)
       # cast to bfloat16
       embedded_inputs = tf.cast(self.embedding_softmax_layer(inputs), tf.bfloat16)
       inputs_padding = model_utils.get_padding(inputs)
@@ -161,17 +160,17 @@ class Transformer(object):
     with tf.name_scope("decode"):
       # Prepare inputs to decoder layers by shifting targets, adding positional
       # encoding and applying dropout.
-      # decoder_inputs = self.embedding_softmax_layer(targets)
-      # cast the target to bfloat16
-      decoder_inputs = tf.cast(self.embedding_softmax_layer(targets), tf.bfloat16)
+      decoder_inputs = self.embedding_softmax_layer(targets)
+      # not cast the target to bfloat16
+      #decoder_inputs = tf.cast(self.embedding_softmax_layer(targets), tf.bfloat16)
       with tf.name_scope("shift_targets"):
         # Shift targets to the right, and remove the last element
         decoder_inputs = tf.pad(
             decoder_inputs, [[0, 0], [1, 0], [0, 0]])[:, :-1, :]
       with tf.name_scope("add_pos_encoding"):
         length = tf.shape(decoder_inputs)[1]
-        # casting to bfloat16
-        length = tf.cast(length, tf.bfloat16)
+        # not casting to bfloat16
+        #length = tf.cast(length, tf.bfloat16)
         decoder_inputs += model_utils.get_position_encoding(
             length, self.params.hidden_size)
       if self.train:
@@ -189,7 +188,7 @@ class Transformer(object):
           attention_bias)
       with tf.contrib.tpu.bfloat16_scope():
         logits = self.embedding_softmax_layer.linear(outputs)
-      logits = tf.cast(logits, tf.bfloat16)
+      logits = tf.cast(logits, tf.float32)
       return logits
 
   def _get_symbols_to_logits_fn(self, max_decode_length):
@@ -229,7 +228,7 @@ class Transformer(object):
       with tf.contrib.tpu.bfloat16_scope():
         logits = self.embedding_softmax_layer.linear(decoder_outputs)
         logits = tf.squeeze(logits, axis=[1])
-      logits = tf.cast(logits, tf.bfloat16)
+      logits = tf.cast(logits, tf.float32)
       return logits, cache
     return symbols_to_logits_fn
 
@@ -292,20 +291,20 @@ class LayerNormalization(tf.layers.Layer):
         key=mlperf_log.MODEL_HP_NORM,
         value={"hidden_size": self.hidden_size})
     # Casting to bfloat16
-    with tf.contrib.tpu.bfloat16_scope(): # Ashraf 
-      self.scale = tf.get_variable("layer_norm_scale", [self.hidden_size],
+    #with tf.contrib.tpu.bfloat16_scope(): # Ashraf 
+    self.scale = tf.get_variable("layer_norm_scale", [self.hidden_size],
                                    initializer=tf.ones_initializer())
-      self.scale = tf.cast(self.scale, tf.bfloat16)
-      self.bias = tf.get_variable("layer_norm_bias", [self.hidden_size],
+      #self.scale = tf.cast(self.scale, tf.bfloat16)
+    self.bias = tf.get_variable("layer_norm_bias", [self.hidden_size],
                                   initializer=tf.zeros_initializer())
-      self.bias = tf.cast(self.bias, tf.bfloat16)
+      #self.bias = tf.cast(self.bias, tf.bfloat16)
     self.built = True
 
   def call(self, x, epsilon=1e-6):
     mean = tf.reduce_mean(x, axis=[-1], keepdims=True)
     variance = tf.reduce_mean(tf.square(x - mean), axis=[-1], keepdims=True)
     norm_x = (x - mean) * tf.rsqrt(variance + epsilon)
-    norm_x = tf.cast(norm_x, tf.bfloat16)
+    #norm_x = tf.cast(norm_x, tf.bfloat16)
     return norm_x * self.scale + self.bias
 
 
@@ -322,6 +321,8 @@ class PrePostProcessingWrapper(object):
 
   def __call__(self, x, *args, **kwargs):
     # Preprocessing: apply layer normalization
+    #casting back to float32
+    x = tf.cast(x, tf.float32)
     y = self.layer_norm(x)
 
     # Get layer output

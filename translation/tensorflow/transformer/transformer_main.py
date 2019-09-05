@@ -133,9 +133,6 @@ def get_train_op(loss, params):
         loss, tvars, colocate_gradients_with_ops=True)
     train_op = optimizer.apply_gradients(
         gradients, global_step=global_step, name="train")
-    #Ashraf 
-    print ("Hi HI HI HI HI HI HI ")
-    print("gradients type",gradients)
     # Save gradient norm to Tensorboard
     tf.summary.scalar("global_norm/gradient_norm",
                       tf.global_norm(list(zip(*gradients))[0]))

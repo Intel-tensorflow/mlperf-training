@@ -136,9 +136,11 @@ class Attention(tf.layers.Layer):
     q *= depth ** -0.5
 
     # Calculate dot product attention
-    logits = tf.matmul(q, k, transpose_b=True)
+    with tf.contrib.tpu.bfloat16_scope(): # Ashraf 
+      logits = tf.matmul(q, k, transpose_b=True)
+    logits = tf.cast(logits, tf.float32)
     # bias is casted to bfloat16
-    bias = tf.cast(bias, tf.bfloat16)
+    #bias = tf.cast(bias, tf.bfloat16)
     logits += bias
     weights = tf.nn.softmax(logits, name="attention_weights")
     if self.train:
@@ -153,6 +155,7 @@ class Attention(tf.layers.Layer):
 
     # Run the combined outputs through another linear projection layer.
     attention_output = self.output_dense_layer(attention_output)
+    attention_output = tf.cast(attention_output, tf.float32)
     return attention_output
 
 
