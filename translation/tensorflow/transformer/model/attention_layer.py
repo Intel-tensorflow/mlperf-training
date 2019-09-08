@@ -134,9 +134,9 @@ class Attention(tf.layers.Layer):
     # Scale q to prevent the dot product between q and k from growing too large.
     depth = (self.hidden_size // self.num_heads)
     q *= depth ** -0.5
-
     # Calculate dot product attention
     with tf.contrib.tpu.bfloat16_scope(): # Ashraf 
+      # this matmul calls batchmatmulv2, which does not support bfloat16
       logits = tf.matmul(q, k, transpose_b=True)
     logits = tf.cast(logits, tf.float32)
     # bias is casted to bfloat16
@@ -148,7 +148,11 @@ class Attention(tf.layers.Layer):
           key=mlperf_log.MODEL_HP_ATTENTION_DROPOUT,
           value=self.attention_dropout)
       weights = tf.nn.dropout(weights, 1.0 - self.attention_dropout)
+    #weights = tf.cast(weights, tf.bfloat16)
+    #v = tf.cast(v, tf.bfloat16)
+    # this matmul also calls batchmatmulv2, does not support bfloat16
     attention_output = tf.matmul(weights, v)
+    #attention_output = tf.cast(attention_output, tf.float32)
 
     # Recombine heads --> [batch_size, length, hidden_size]
     attention_output = self.combine_heads(attention_output)
