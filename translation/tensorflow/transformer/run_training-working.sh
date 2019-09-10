@@ -10,14 +10,14 @@ QUALITY=10
 #cd /research/transformer
 
 #export PYTHONPATH=/nfs/site/home/mbhuiyan/tensorflow/models-tf-official-zoo/
-export PYTHONPATH=/ec/fm/disks/aipg_lab_home_mbhuiyan/tensorflow/mlperf-train-intel-tensorflow/compliance:/localdisk/ashraf/private-tensorflow-bf16_bin/
+export PYTHONPATH=/ec/pdx/disks/aipg_lab_home_pool_01/mbhuiyan/tensorflow/mlperf-train-intel-tensorflow/compliance:/localdisk/ashraf/private-tensorflow-bf16_bin/
 #export PYTHONPATH=/ec/fm/disks/aipg_lab_home_mbhuiyan/tensorflow/mlperf-train-intel-tensorflow/compliance:/localdisk/ashraf/public-tensorflow_bin/
 # Add compliance to PYTHONPATH
 # export PYTHONPATH=/mlperf/training/compliance:${PYTHONPATH}
 
 PARAM_SET=big
-DATA_DIR=/nfs/site/home/mbhuiyan/tensorflow/models-tf-official-zoo/official/transformer/data
-MODEL_DIR=/nfs/site/home/mbhuiyan/tensorflow/models-tf-official-zoo/official/transformer/model2_$PARAM_SET
+DATA_DIR=/nfs/pdx/home/mbhuiyan/tensorflow/models-tf-official-zoo/official/transformer/data
+MODEL_DIR=/nfs/pdx/home/mbhuiyan/tensorflow/models-tf-official-zoo/official/transformer/model2_$PARAM_SET
 VOCAB_FILE=$DATA_DIR/vocab.ende.32768
 
 #python transformer_main.py --random_seed=${SEED} --data_dir=$DATA_DIR  --model_dir=$MODEL_DIR --params=big --bleu_source=/ec/fm/disks/aipg_lab_home_mbhuiyan/tensorflow/mlperf-training/translation/newstest2014.en --bleu_ref=/ec/fm/disks/aipg_lab_home_mbhuiyan/tensorflow/mlperf-training/translation/newstest2014.de --train_steps=1000

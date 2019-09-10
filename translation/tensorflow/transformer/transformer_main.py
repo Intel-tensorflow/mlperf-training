@@ -343,8 +343,12 @@ def main(_):
   params.epochs_between_eval = FLAGS.epochs_between_eval
   params.repeat_dataset = single_iteration_train_epochs
 
+  # Ashraf: to skip the checkpoints saving (which takes long time)  
+  # added the following run_config
+  run_config = tf.estimator.RunConfig(save_summary_steps=None,
+                                              save_checkpoints_secs=None)
   estimator = tf.estimator.Estimator(
-      model_fn=model_fn, model_dir=FLAGS.model_dir, params=params)
+      model_fn=model_fn, model_dir=FLAGS.model_dir, params=params, config=run_config)
   train_schedule(
       estimator, train_eval_iterations, single_iteration_train_steps,
       single_iteration_train_epochs, FLAGS.bleu_source, FLAGS.bleu_ref,
