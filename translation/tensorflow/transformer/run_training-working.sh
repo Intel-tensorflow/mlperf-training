@@ -10,8 +10,8 @@ QUALITY=10
 #cd /research/transformer
 
 #export PYTHONPATH=/nfs/site/home/mbhuiyan/tensorflow/models-tf-official-zoo/
-export PYTHONPATH=/ec/pdx/disks/aipg_lab_home_pool_01/mbhuiyan/tensorflow/mlperf-train-intel-tensorflow/compliance:/localdisk/ashraf/private-tensorflow-bf16_bin/
-#export PYTHONPATH=/ec/fm/disks/aipg_lab_home_mbhuiyan/tensorflow/mlperf-train-intel-tensorflow/compliance:/localdisk/ashraf/public-tensorflow_bin/
+#export PYTHONPATH=/ec/pdx/disks/aipg_lab_home_pool_01/mbhuiyan/tensorflow/mlperf-train-intel-tensorflow/compliance:/localdisk/ashraf/private-tensorflow-bf16_bin/
+export PYTHONPATH=/ec/fm/disks/aipg_lab_home_mbhuiyan/tensorflow/mlperf-train-intel-tensorflow/compliance:/localdisk/ashraf/private-tensorflow_mkl_1.14bin
 # Add compliance to PYTHONPATH
 # export PYTHONPATH=/mlperf/training/compliance:${PYTHONPATH}
 
